@@ -1,0 +1,78 @@
+/* sass variables */
+
+.common-content-block {
+  min-height: 500px;
+}
+
+.navbar-transparent {
+  background-color: #030303;
+}
+
+.navbar-transparent a,
+.navbar-transparent a:focus {
+  color: #fff;
+  font-size: 25px;
+}
+
+button:focus {
+  outline: 0;
+}
+
+[v-cloak] {
+  display: none;
+}
+
+.clearfixer {
+  float: none;
+  clear: both;
+}
+
+.custom-sections {
+  margin-top: 40px;
+  padding: 25px;
+  border: 1px solid #333;
+}
+
+.fg-1 {
+  width: 50%;
+}
+
+.fg-2 {
+  width: 30%;
+}
+
+.fg-3 {
+  width: 20%;
+}
+
+.form-section form .form-group input,
+.form-section form .form-group button,
+.form-section form .form-group select {
+  display: block;
+  width: 100%;
+  margin-right: 20px;
+  font-size: 17px;
+}
+
+.form-section form .form-group button {
+  margin-right: 0px;
+}
+
+.orders-section {
+  margin-bottom: 30px;
+}
+
+@media (max-width: 480px) {
+  .fg-1 {
+    width: 100%;
+  }
+
+  .fg-2 {
+    width: 100%;
+  }
+
+  .fg-3 {
+    width: 100%;
+  }
+}
+
