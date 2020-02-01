@@ -15,6 +15,16 @@
 /*
  * default home page
  */
-Route::get('/', 'OrdersController@index');
+Route::get('/', 'OrdersController@index')->name('home');
 
-Route::post('/', 'OrdersController@index')->name('search_order');
+// search
+Route::get('/search', 'OrdersController@index')->name('search_order');
+
+// delete order
+Route::get('/delete/{orderId}', 'OrdersController@deleteOrder')->name('delete_order');
+
+// edit order
+Route::get('/edit/{orderId}', 'OrdersController@editOrder')->name('edit_order');
+
+// update order
+Route::post('/update', 'OrdersController@updateOrder')->name('update_order');
