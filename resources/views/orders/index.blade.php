@@ -46,7 +46,7 @@
     <section class="custom-sections email-section">
         <div class="row">
             <div class="col-md-12">
-              <a href="#">Email this report <i class="fa fa-paper-plane" aria-hidden="true"></i></a>
+              <a target="_blank" href="{{route('email_report') . '/?' . $emailReportLinkQuery}}">Email this report <i class="fa fa-paper-plane" aria-hidden="true"></i></a>
             </div>
         </div>
     </section>

@@ -28,3 +28,6 @@ Route::get('/edit/{orderId}', 'OrdersController@editOrder')->name('edit_order');
 
 // update order
 Route::post('/update', 'OrdersController@updateOrder')->name('update_order');
+
+// email report
+Route::get('/emailreport', 'OrdersController@emailReport')->name('email_report');

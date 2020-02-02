@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use App\Order;
 
 use App\Charts\OrdersChart;
+use App\Mail\OrdersReportEmail;
+use Illuminate\Support\Facades\Mail;
 
 class OrdersController extends Controller
 {
@@ -113,15 +115,19 @@ class OrdersController extends Controller
         // add query string to links
         $orders->appends($querystringArray);
 
+        // url query for the email link
+        $emailReportLinkQuery = http_build_query($querystringArray);
+
         //Special fixes for sorting links (Client, Product, Date)
         unset($querystringArray['sort']);
         unset($querystringArray['dir']);
         if (!empty(request()->get('page'))) {
             $querystringArray['page'] = request()->get('page');
         }
+
         $sUrlQueryString = http_build_query($querystringArray);
 
-        return view('orders.index', compact(['chart', 'orders', 'aSearchTypes', 'querystringArray', 'sUrlQueryString']));
+        return view('orders.index', compact(['chart', 'orders', 'aSearchTypes', 'querystringArray', 'sUrlQueryString', 'emailReportLinkQuery']));
     }
 
     /*
@@ -167,5 +173,75 @@ class OrdersController extends Controller
         }
 
         return redirect()->route('home');
+    }
+
+    public function emailReport()
+    {
+        $key_word = request()->get('key_word');
+        $search_type = request()->get('search_type');
+
+        // $querystringArray will be used to add url params to pagination links
+
+        // Assign Sort By values (default or coming from url)
+        $tmp_sort = request()->get('sort');
+        $sort_direction = request()->get('dir');
+
+        if (!empty($tmp_sort) && in_array($tmp_sort, array_keys(self::$aPossibleSortOrders)) && !empty($sort_direction) && in_array($sort_direction, ['asc', 'desc'])) {
+            $sort = self::$aPossibleSortOrders[$tmp_sort];
+        }
+        else {
+            $sort = 'o.order_date';
+            $sort_direction = 'asc';
+        }
+
+        // Get All Orders
+        $query = DB::table('orders as o');
+        $query->join('clients as c', 'o.client_id', '=', 'c.id');
+        $query->join('products as p', 'o.product_id', '=', 'p.id');
+
+        // Apply Filters
+        if (!empty($key_word) && isset($search_type)) {
+
+            switch (self::$aSearchTypes[$search_type]) {
+
+                case 'All':
+                    $query->where('c.name', 'like', '%'.request()->get('key_word').'%')->orWhere('c.name', 'like', '%'.request()->get('key_word').'%')->orWhere('p.name', 'like', '%'.request()->get('key_word').'%')->orWhere('o.total_amount', '=', request()->get('key_word'))->orWhere('o.order_date', '=', date('Y-m-d', strtotime(request()->get('key_word'))));
+                    break;
+                case 'Client':
+                    $query->where('c.name', 'like', '%'.request()->get('key_word').'%');
+                    break;
+                case 'Product':
+                    $query->where('p.name', 'like', '%'.request()->get('key_word').'%');
+                    break;
+                case 'Total':
+                    $query->where('o.total_amount', '=', request()->get('key_word'));
+                    break;
+                case 'Date':
+                    $query->where('o.order_date', '=', date('Y-m-d', strtotime(request()->get('key_word'))));
+                    break;
+            }
+
+        }
+
+        $query->select('o.*', 'c.name as client_name', 'p.name as product_name');
+        $query->orderBy($sort, $sort_direction);
+        $orders = $query->get();
+
+        $the_email = env('MAIL_FOR_REPORT','konstantin.mrlens@gmail.com');
+
+        $data = new \stdClass();
+        $data->sender = 'Orders Api (test)';
+        $data->receiver = 'Dummy User';
+        $data->orders = $orders;
+
+        Mail::to($the_email)->send(new OrdersReportEmail($data));
+
+        $mail_failures = false;
+
+        if (!empty(Mail::failures())) {
+            $mail_failures = true;
+        }
+
+        return view('orders.email_sent', compact(['the_email', 'mail_failures']));
     }
 }
